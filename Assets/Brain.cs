@@ -5,13 +5,23 @@ using UnityEngine;
 
 public class Brain
 {
+
+    private static readonly float MUTATION_RATE = 0.01f;
+    private static readonly float ACCELERATION_MULTIPLIER = 5f;
     public Brain(int numberOfInstructions)
     {
+        Debug.Log("Creating Random Brain");
         Directions = new(new Vector2[numberOfInstructions]);
         RandomizeInstructions();
     }
 
-    public List<Vector2> Directions = new();
+    public Brain(Brain parent)
+    {
+        Debug.Log("Creating Copied Brain");
+        Directions = new(parent.Directions);
+    }
+
+    public List<Vector2> Directions;
     public int Step { get; set; } = 0;
 
     private void RandomizeInstructions()
@@ -20,7 +30,20 @@ public class Brain
         for (int i = 0; i < Directions.Count; i++)
         {
             float randomAngle = rnd.Next(0, 360);
-            Directions[i] = randomAngle.Vector2FromDegrees() * 3;
+            Directions[i] = randomAngle.Vector2FromDegrees() * ACCELERATION_MULTIPLIER;
+        }
+    }
+
+    public void Mutate()
+    {
+        for (int i = 0; i < Directions.Count; i++)
+        {
+            if (Random.Range(0, 1f) < MUTATION_RATE)
+            {
+                // set this direction as a new random direction
+                float randomAngle = Random.Range(0, 360);
+                Directions[i] = randomAngle.Vector2FromDegrees() * ACCELERATION_MULTIPLIER;
+            }
         }
     }
 }

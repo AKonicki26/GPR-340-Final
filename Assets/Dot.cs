@@ -7,7 +7,9 @@ using UnityEngine.UIElements;
 
 public class Dot : MonoBehaviour
 {
+    private static readonly int MAX_BRAIN_STEPS = 400;
     public Brain Brain;
+    private static int minimumSteps = MAX_BRAIN_STEPS;
 
     public Vector2 Position
     {
@@ -35,6 +37,8 @@ public class Dot : MonoBehaviour
     private static Vector3 _screenBottomLeft;
     private static Vector3 _screentopRight;
 
+    public int StepsToFinish = MAX_BRAIN_STEPS;
+
 
     [SerializeField] private float fitness = 0;
 
@@ -60,18 +64,17 @@ public class Dot : MonoBehaviour
 
     public static Vector2 GoalPosition;
 
-    // Start is called before the first frame update
-    void Start()
+    void Awake()
     {
         _screenBottomLeft = Camera.main.ViewportToWorldPoint(new Vector2(0f, 0f));
         _screentopRight = Camera.main.ViewportToWorldPoint(new Vector2(1f, 1f));
-        Brain = new(400);
+        Brain = new(MAX_BRAIN_STEPS);
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
-        if (!InScreenBounds())
+        if (!InScreenBounds() || Brain.Step > minimumSteps)
             Kill();
         // Only update alive dots
         if (Dead || ReachedGoal)
@@ -119,16 +122,33 @@ public class Dot : MonoBehaviour
 
     public void CalculateFitness()
     {
-        var distToGoal = Vector2.Distance(Position, GoalPosition);
-        Fitness = 1.0f / ( distToGoal * distToGoal );
+        if (ReachedGoal)
+        {
+            Fitness = 10.0f + ((float)(MAX_BRAIN_STEPS * MAX_BRAIN_STEPS) / (StepsToFinish * StepsToFinish));
+            if (StepsToFinish < minimumSteps)
+                minimumSteps = StepsToFinish;
+        } else {
+            var distToGoal = Vector2.Distance(Position, GoalPosition);
+            Fitness = 1.0f / ( distToGoal * distToGoal );
+        }
+
+    }
+
+    public void BecomeChildOf(Dot parent)
+    {
+        Brain = new Brain(parent.Brain);
     }
 
     void OnTriggerEnter2D(Collider2D other)
     {
         Debug.Log(other.GameObject().name);
-        if (other.CompareTag("Goal"))
+        if (other.CompareTag("Goal") && !ReachedGoal)
         {
             ReachedGoal = true;
+            StepsToFinish = Brain.Step;
+        } else if (other.CompareTag("Obstacle"))
+        {
+            Kill();
         }
     }
 }

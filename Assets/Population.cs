@@ -7,11 +7,12 @@ using UnityEngine.UIElements;
 
 public class Population : MonoBehaviour
 {
-    // Start is called before the first frame update
-
-    private int size = 100;
     [SerializeField]
     private GameObject[] _population;
+
+    private GameObject[] _nextGeneration;
+
+    private int _bestInPreviousGenerationIndex;
 
     [SerializeField]
     private GameObject DotPrefab;
@@ -24,6 +25,8 @@ public class Population : MonoBehaviour
     private int _generationCount = 1;
 
     public TMP_Text GenerationText;
+
+    private float fitnessSum;
 
     public int GenerationCount
     {
@@ -55,16 +58,22 @@ public class Population : MonoBehaviour
         while (_preparingNextGeneration)
         {
             yield return CaluclateFitness();
+            yield return NaturalSelection();
+            yield return MutateChildren();
 
             // Kill the current dots
-            foreach(Transform child in transform)
+            foreach (var t in _population)
             {
-                Destroy(child.gameObject);
+                Destroy(t);
             }
 
-            Init();
+            _population = _nextGeneration;
 
-
+            // set each of them active
+            for(int i = 0; i < _population.Length; i++)
+            {
+                _population[i].SetActive(true);
+            }
 
             _preparingNextGeneration = false;
         }
@@ -74,32 +83,11 @@ public class Population : MonoBehaviour
 
     void Init(int size = 100)
     {
-        this.size = size;
         _population = new GameObject[size];
         for (int i = 0; i < size; i++)
         {
             _population[i] = Instantiate(DotPrefab, this.transform);
         }
-    }
-
-    IEnumerator CaluclateFitness()
-    {
-        List<Dot> dots = _population.Select(x => x.GetComponent<Dot>()).ToList();
-        GameObject closestDot = _population[0];
-        float highestFitness = 0;
-
-        Dot.GoalPosition = Goal.transform.position;
-        foreach (var dot in dots)
-        {
-            dot.CalculateFitness();
-            if (dot.Fitness > highestFitness)
-            {
-                closestDot = dot.gameObject;
-                highestFitness = dot.Fitness;
-            }
-            yield return null;
-        }
-        closestDot.GetComponent<SpriteRenderer>().color = Color.yellow;
     }
 
     bool GetAllPopulationDead()
@@ -114,8 +102,83 @@ public class Population : MonoBehaviour
         return true;
     }
 
-    void NaturalSelection()
+    IEnumerator CaluclateFitness()
+    {
+        List<Dot> dots = _population.Select(x => x.GetComponent<Dot>()).ToList();
+        GameObject closestDot = _population[0];
+        float highestFitness = 0;
+
+        Dot.GoalPosition = Goal.transform.position;
+
+        fitnessSum = 0;
+
+        for (int i = 0; i < _population.Length; i++)
+        {
+            dots[i].CalculateFitness();
+            if (dots[i].Fitness > highestFitness)
+            {
+                closestDot = dots[i].gameObject;
+                highestFitness = dots[i].Fitness;
+                _bestInPreviousGenerationIndex = i;
+            }
+            fitnessSum += dots[i].Fitness;
+            yield return null;
+        }
+        closestDot.GetComponent<SpriteRenderer>().color = Color.green;
+    }
+
+    IEnumerator NaturalSelection()
+    {
+        _nextGeneration = new GameObject[_population.Length];
+
+        for (int i = 0; i < _population.Length; i++)
+        {
+            Dot parent = selectParent();
+
+            // Instantiate the next generation and set it inactive immediately
+            // Now we can mess with it without any Update functions calling, but it will still run Start/Awake methods
+            _nextGeneration[i] = Instantiate(DotPrefab, this.transform);
+
+            var dot = _nextGeneration[i].GetComponent<Dot>();
+            dot.BecomeChildOf(parent);
+
+            _nextGeneration[i].SetActive(false);
+
+            yield return null;
+        }
+
+        _nextGeneration[0].GetComponent<Dot>().BecomeChildOf(_population[_bestInPreviousGenerationIndex].GetComponent<Dot>());
+        _nextGeneration[0].GetComponent<SpriteRenderer>().color = Color.yellow;
+    }
+
+    Dot selectParent()
+    {
+        float rand = Random.Range(0, fitnessSum);
+
+        float runningTotal = 0;
+
+        foreach (var gameObject in _population)
+        {
+            var dot = gameObject.GetComponent<Dot>();
+            runningTotal += dot.Fitness;
+            if (runningTotal > rand)
+            {
+                return dot;
+            }
+        }
+        // should never get here
+        return null;
+    }
+
+    IEnumerator MutateChildren()
     {
 
+        for (int i = 1; i < _nextGeneration.Length; i++)
+        {
+            _nextGeneration[i].GetComponent<Dot>().Brain.Mutate();
+
+
+            yield return null;
+        }
     }
 }
