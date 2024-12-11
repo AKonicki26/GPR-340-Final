@@ -1,0 +1,75 @@
+\documentclass[twoside]{article}
+\usepackage{fullpage}
+\usepackage[pdftex]{graphicx}
+\usepackage{wrapfig}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{sectsty}
+%\sectionfont{\fontsize{13}{15}\selectfont}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{lstmisc}
+\usepackage{xcolor}
+\pagestyle{fancy}
+\fancyhead{}
+\fancyfoot{}
+\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[L]{\emph{Konicki - CSI 370 - Final Report}}
+\fancyfoot[R] {\thepage}
+\newenvironment{code}{\fontfamily{lmtt}\selectfont}{}
+\date{}
+
+\definecolor{commentgreen}{rgb}{0.0, 0.500, 0.015}
+
+\lstset{frame=tb,
+    language=C++,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    commentstyle=\color{commentgreen}\ttfamily,
+    morecomment=[l][\color{magenta}]{\#},
+    breaklines=true,
+}
+
+\lstset{frame=tb,
+    language=MASM,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    commentstyle=\color{commentgreen}\ttfamily,
+    morecomment=[l][\color{magenta}]{\#},
+    breaklines=true,
+}
+
+% Document
+\begin{document}
+
+    \title{GPR 340 - Artificial Intelligence for Games \\ Genetic Algorithm }
+    \author{Anne Konicki \\ Champlain College \\ anne.konicki@mymail.champlain.edu \\ December 2024 }
+    \maketitle
+
+
+    \section{What is the Genetic Algorithm???}\label{sec:what-is-the-genetic-algorithm}
+    The genetic algorithm is a machine learning algorithm that trains a model to complete a specific task as efficiently as possible.
+    The algorithm takes a scenario, as well as a large assortment of agents.
+    The agents will begin acting completely at random.
+    After a short trial, each agent will be scored based on a programmer-defined ``fitness'' function.
+    Based on this function, the agents that performed the best will be cloned.
+
+    \bigbreak
+    \noindent
+    In subsequent runs, each cloned agent will have ``genetic mutations,'' or small modifications to the instructions in hopes of improving.
+    The best agent from the previous generation will also be directly inserted into the next generation to ensure that it is not possible for the entire generation to mutate negatively.
+    The process of running a generation, running the fitness function, cloning the best agents in a generation, and then mutating them will then repeat endlessly.
+    Eventually, one of the agents will complete the task, at which point the agents will begin to optimize the task.
+
+    \bigbreak
+    \noindent
+    Once the goal has been completed, or the programmer ends the project, the ideal is that at least one of the agents was able to complete the task efficiently.
+
+    \section{So why did I want to do this???}\label{sec:so-why-did-i-want-to-do-this???}
+    Machine Learning in video games has been something I've been interested in for years now.
+
+
+\end{document}
